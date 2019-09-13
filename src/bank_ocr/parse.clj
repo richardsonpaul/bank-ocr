@@ -128,13 +128,28 @@
 (defn lines->acct-number
   "the format should have 3 lines of characters"
   [lines]
-  (let [acct-number-accum (fn [lines acct-num]
-                            (if (-> lines first seq)
-                              (let [next-num (-> lines
-                                                 lines->desc
-                                                 ->numeral)
-                                    new-acct-num (+ (* 10 acct-num) next-num)
-                                    next-lines (map #(drop 3 %) lines)]
-                                (recur next-lines new-acct-num))
-                              acct-num))]
-    (acct-number-accum lines 0)))
+  (let [numeral-accum (fn [lines acct-num]
+                        (if (-> lines first seq)
+                          (let [next-num (-> lines
+                                             lines->desc
+                                             ->numeral)
+                                new-acct-num (+ (* 10 acct-num) next-num)
+                                next-lines (map #(drop 3 %) lines)]
+                            (recur next-lines new-acct-num))
+                          acct-num))]
+    (numeral-accum lines 0)))
+
+(defn parse-lines
+  "takes a bunch of lines, these *should be* 27 characters each, and parse them into a seq of numerals"
+  [lines]
+  (let [chars-per-line 27
+        acct-num-accum (fn [lines acct-nums]
+                         (if (seq lines)
+                           (let [[next-acct-num more-acct-nums] (split-at 3 lines)]
+                             (->> next-acct-num
+                                  (map #(take chars-per-line %))
+                                  lines->acct-number
+                                  (conj acct-nums)
+                                  (recur more-acct-nums)))
+                           acct-nums))]
+    (acct-num-accum lines [])))
