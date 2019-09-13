@@ -81,6 +81,9 @@
                               pred-8? 8
                               pred-9? 9})
 
+(defn- legible? [desc numeral]
+  (-> numeral nums (= desc)))
+
 (defn- desc->numeral
   "take a description of active 'pixels' and a list of predicates"
   [desc preds]
@@ -90,11 +93,14 @@
     (when (seq next-pred-list)
       (if (= (count next-pred-list) 1)
         (first next-pred-list)
-        (desc->numeral desc next-pred-list)))))
+        (recur desc next-pred-list)))))
 
-(defn ->numeral [desc]
-  (let [numeral (desc->numeral desc (keys pred->numeral))]
-    (when (seq numeral) (first numeral))))
+(defn ->numeral [num]
+  (let [desc (sort num)
+        [numeral] (desc->numeral desc (keys pred->numeral))]
+    (if (legible? desc numeral)
+      numeral
+      \?)))
 
 (defn lines->desc
   "lines should be a 3-line string description of a number in ocr format"
@@ -145,12 +151,21 @@
                   checksum))]
     (accum num-seq [0 (iterate dec 9)])))
 
+(defn- invalid-checksum? [checksum]
+  (not= 0 checksum))
+
+(defn- illegible? [num-seq]
+  (some #{\?} num-seq))
+
 (defn lines->acct-number
   "the format should have 3 lines of characters"
   [lines]
-  (-> lines
-      lines->num-seq
-      num-seq->acct-number))
+  (let [num-seq (lines->num-seq lines)
+        acct-num (num-seq->acct-number num-seq)]
+    (cond
+      (illegible? num-seq) (str acct-num " ILL")
+      (invalid-checksum? (num-seq->checksum num-seq)) (str acct-num " ERR")
+      :else acct-num)))
 
 (defn parse-lines
   "takes a bunch of lines, these *should be* 27 characters each, and parse them into a seq of numerals"

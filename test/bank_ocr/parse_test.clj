@@ -148,14 +148,14 @@
     (is (= "123456789" (lines->acct-number (->acct-num-lines one two three four five six seven eight nine))))))
 
 (def lines (let [numbers [[1 2 3 4 5 6 7 8 9 0]
-                          [2 3 4 5 6 7 8 9 1]
-                          [6 5 4 8 9 0 2 3 8]]
+                          [2 3 4 5 6 7 8 9 9]
+                          [6 5 4 8 9 0 2 6 9]]
                  num-vec->acct-num (fn [num] (apply ->acct-num-lines (map #(nums %) num)))]
              (flatten (map num-vec->acct-num numbers))))
 
 (def acct-numbers ["123456789"
-                   "234567891"
-                   "654890238"])
+                   "234567899"
+                   "654890269"])
 
 (deftest test-some-lines
   (testing "test a couple of acct numbers"
@@ -181,3 +181,23 @@
     (is (= 0 (num-seq->checksum [4 5 7 5 0 8 0 0 0]))))
   (testing "invalid checksum"
     (is (= 2 (num-seq->checksum [6 6 4 3 7 1 4 9 5])))))
+
+(deftest illegible-acct-num
+  (testing "illegible number"
+    (is (= \?
+           (->> 1
+                nums
+                (cons 3)
+                ->numeral)))))
+
+(deftest bad-account-numbers
+  (testing "illegible characters"
+    (is (= "12?4567?9 ILL"
+           (lines->acct-number (->acct-num-lines one two
+                                                 (->> three (cons 6))
+                                                 four five six seven
+                                                 (drop 2 eight)
+                                                 nine)))))
+  (testing "error in checksum"
+    (is (= "664371495 ERR"
+           (lines->acct-number (->acct-num-lines six six four three seven one four nine five))))))
