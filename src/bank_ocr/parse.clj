@@ -119,8 +119,22 @@
                           (if (= \space (first characters))
                             (recur (rest characters) pixels (inc i))
                             (recur (rest characters) (conj pixels i) (inc i)))))]
-    (-> (map #(take 3 %) lines)
+    (-> (map #(take 3 %) lines) ;; first 3 "columns" describe the next numeral
         flatten
         vec
         (assoc 0 \space 2 \space)
         (active-pixels [] 0))))
+
+(defn lines->acct-number
+  "the format should have 3 lines of characters"
+  [lines]
+  (let [acct-number-accum (fn [lines acct-num]
+                            (if (-> lines first seq)
+                              (let [next-num (-> lines
+                                                 lines->desc
+                                                 ->numeral)
+                                    new-acct-num (+ (* 10 acct-num) next-num)
+                                    next-lines (map #(drop 3 %) lines)]
+                                (recur next-lines new-acct-num))
+                              acct-num))]
+    (acct-number-accum lines 0)))

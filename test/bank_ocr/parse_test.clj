@@ -19,10 +19,8 @@
          (partition (count nums))
          (map ->str))))
 
-(defn- print-nums [& nums]
-  (let [rows (-> (->row-strs nums)
-                 (interleave (repeat \newline)))]
-    (print (apply str rows))))
+(defn- ->acct-num-lines [& nums]
+  (->row-strs nums))
 
 (deftest test-number-format
   (testing "all zeroes"
@@ -144,3 +142,7 @@
     (is (= (nums 9) (-> [(nums 9)]
                         ->row-strs
                         lines->desc)))))
+
+(deftest test-lines->numeral
+  (testing "some lines to acct-number"
+    (is (= 123456789 (lines->acct-number (->acct-num-lines one two three four five six seven eight nine))))))
