@@ -147,16 +147,31 @@
   (testing "some lines to acct-number"
     (is (= 123456789 (lines->acct-number (->acct-num-lines one two three four five six seven eight nine))))))
 
+(def lines (let [numbers [[1 2 3 4 5 6 7 8 9 0]
+                          [2 3 4 5 6 7 8 9 1]
+                          [6 5 4 8 9 0 2 3 8]]
+                 num-vec->acct-num (fn [num] (apply ->acct-num-lines (map #(nums %) num)))]
+             (flatten (map num-vec->acct-num numbers))))
+
+(def acct-numbers [123456789
+                   234567891
+                   654890238])
+
 (deftest test-some-lines
   (testing "test a couple of acct numbers"
+    (is (= acct-numbers
+           (parse-lines lines)))))
 
-    (let [numbers [[1 2 3 4 5 6 7 8 9 0]
-                   [2 3 4 5 6 7 8 9 1]
-                   [6 5 4 8 9 0 2 3 8]]
-          num-vec->acct-num  (fn [num] (apply ->acct-num-lines (map #(nums %) num)))]
-      (is (= [123456789
-              234567891
-              654890238]
-             (-> (map num-vec->acct-num numbers)
-                 flatten
-                 parse-lines))))))
+(deftest test-file-parser
+  (testing "provide a BufferedReader containing data in the proper format and test parsing"
+    (is (= acct-numbers
+           (let [interleave-newlines #(interleave % (repeat \newline))
+                 file (->> lines
+                           interleave-newlines
+                           (partition 3)
+                           interleave-newlines
+                           flatten
+                           (apply str)
+                           (java.io.StringReader.)
+                           (java.io.BufferedReader.))]
+             (parse-file file))))))

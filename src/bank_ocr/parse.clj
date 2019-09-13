@@ -153,3 +153,12 @@
                                   (recur more-acct-nums)))
                            acct-nums))]
     (acct-num-accum lines [])))
+
+(defn parse-file
+  "takes a stream (java.io.BufferedReader) and parses account numbers from it"
+  [stream]
+  ;; split on newlines and drop empty lines, pass to parse-lines
+  (->> stream
+       line-seq
+       (remove clojure.string/blank?)
+       parse-lines))
