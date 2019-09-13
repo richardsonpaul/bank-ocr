@@ -26,18 +26,6 @@
 (def nine [1 3 4 5 7 8])
 
 (def nums [zero one two three four five six seven eight nine])
-(defn- ->name [num]
-  (condp = num
-    zero :zero
-    one :one
-    two :two
-    three :three
-    four :four
-    five :five
-    six :six
-    seven :seven
-    eight :eight
-    nine :nine))
 
 ;; let's do a binary search; I'm going to use `frequencies` to analyze how often each 'pixel'
 ;;; falls in each number; then I can divide them into even-ish groups
@@ -140,12 +128,10 @@
   (let [accum (fn [desc acct-num]
                 (if (seq desc)
                   (let [next-num (first desc)
-                        new-acct-num (-> acct-num
-                                         (* 10)
-                                         (+ next-num))]
+                        new-acct-num (str acct-num next-num)]
                     (recur (rest desc) new-acct-num))
                   acct-num))]
-    (accum num-seq 0)))
+    (accum num-seq "")))
 
 (defn num-seq->checksum [num-seq]
   (let [accum (fn [desc [checksum digit-seq]]

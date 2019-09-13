@@ -145,7 +145,7 @@
 
 (deftest test-lines->numeral
   (testing "some lines to acct-number"
-    (is (= 123456789 (lines->acct-number (->acct-num-lines one two three four five six seven eight nine))))))
+    (is (= "123456789" (lines->acct-number (->acct-num-lines one two three four five six seven eight nine))))))
 
 (def lines (let [numbers [[1 2 3 4 5 6 7 8 9 0]
                           [2 3 4 5 6 7 8 9 1]
@@ -153,9 +153,9 @@
                  num-vec->acct-num (fn [num] (apply ->acct-num-lines (map #(nums %) num)))]
              (flatten (map num-vec->acct-num numbers))))
 
-(def acct-numbers [123456789
-                   234567891
-                   654890238])
+(def acct-numbers ["123456789"
+                   "234567891"
+                   "654890238"])
 
 (deftest test-some-lines
   (testing "test a couple of acct numbers"
