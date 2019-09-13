@@ -2,59 +2,81 @@
   (:require [clojure.test :refer :all]
             [bank-ocr.parse :refer :all]))
 
-(deftest parse-account-numbers
-  (testing "parse all zeroes"
-    (is (= (parse (str " _  _  _  _  _  _  _  _  _ "
-                       "| || || || || || || || || |"
-                       "|_||_||_||_||_||_||_||_||_|"))
-           000000000)))
-  (testing "parse all ones"
-    (is (= (parse (str "                           "
-                       "  |  |  |  |  |  |  |  |  |"
-                       "  |  |  |  |  |  |  |  |  |"))
-           111111111)))
-  (testing "parse all twos"
-    (is (= (parse (str " _  _  _  _  _  _  _  _  _ "
-                       " _| _| _| _| _| _| _| _| _|"
-                       "|_ |_ |_ |_ |_ |_ |_ |_ |_ "))
-           222222222)))
-  (testing "parse all threes"
-    (is (= (parse (str " _  _  _  _  _  _  _  _  _ "
-                       " _| _| _| _| _| _| _| _| _|"
-                       " _| _| _| _| _| _| _| _| _|"))
-           333333333)))
-  (testing "parse all fours"
-    (is (= (parse (str "                           "
-                       "|_||_||_||_||_||_||_||_||_|"
-                       "  |  |  |  |  |  |  |  |  |"))
-           444444444)))
-  (testing "parse all fives"
-    (is (= (parse (str " _  _  _  _  _  _  _  _  _ "
-                       "|_ |_ |_ |_ |_ |_ |_ |_ |_ "
-                       " _| _| _| _| _| _| _| _| _|"))
-           555555555)))
-  (testing "parse all sixes"
-    (is (= (parse (str " _  _  _  _  _  _  _  _  _ "
-                       "|_ |_ |_ |_ |_ |_ |_ |_ |_ "
-                       "|_||_||_||_||_||_||_||_||_|"))
-           666666666)))
-  (testing "parse all sevens"
-    (is (= (parse (str " _  _  _  _  _  _  _  _  _ "
-                       "  |  |  |  |  |  |  |  |  |"
-                       "  |  |  |  |  |  |  |  |  |"))
-           777777777)))
-  (testing "parse all eights"
-    (is (= (parse (str " _  _  _  _  _  _  _  _  _ "
-                       "|_||_||_||_||_||_||_||_||_|"
-                       "|_||_||_||_||_||_||_||_||_|"))
-           888888888)))
-  (testing "parse all nines"
-    (is (= (parse (str " _  _  _  _  _  _  _  _  _ "
-                       "|_||_||_||_||_||_||_||_||_|"
-                       " _| _| _| _| _| _| _| _| _|"))
-           999999999)))
-  (testing "parse sequential numbers"
-    (is (= (parse (str "    _  _     _  _  _  _  _ "
-                       "  | _| _||_||_ |_   ||_||_|"
-                       "  ||_  _|  | _||_|  ||_| _|"))
-           123456789))))
+(defn- ->printed [c] (if (even? (mod c 3)) \| \_))
+
+(defn- ->row-chars [indices number]
+  (let [print? (set number)]
+    (for [i indices]
+      (if (print? i) (->printed i) \space))))
+
+(defn- ->row-strs [nums]
+  (let [rows (->> (range 9) (partition 3))
+        ->str #(apply str %)]
+    (->> (for [row rows
+               num nums]
+           (->row-chars row num))
+         (map ->str)
+         (partition (count nums))
+         (map ->str))))
+
+(defn- print-nums [& nums]
+  (let [rows (-> (->row-strs nums)
+                 (interleave (repeat \newline)))]
+    (print (apply str rows))))
+
+(deftest test-number-format
+  (testing "all zeroes"
+    (is (= [" _  _  _  _  _  _  _  _  _ "
+            "| || || || || || || || || |"
+            "|_||_||_||_||_||_||_||_||_|"]
+           (->row-strs [zero zero zero zero zero zero zero zero zero]))))
+  (testing "all ones"
+    (is (= ["                           "
+            "  |  |  |  |  |  |  |  |  |"
+            "  |  |  |  |  |  |  |  |  |"]
+           (->row-strs [one one one one one one one one one]))))
+  (testing "all twos"
+    (is (= [" _  _  _  _  _  _  _  _  _ "
+            " _| _| _| _| _| _| _| _| _|"
+            "|_ |_ |_ |_ |_ |_ |_ |_ |_ "]
+           (->row-strs [two two two two two two two two two]))))
+  (testing "all three s"
+    (is (= [" _  _  _  _  _  _  _  _  _ "
+            " _| _| _| _| _| _| _| _| _|"
+            " _| _| _| _| _| _| _| _| _|"]
+           (->row-strs [three three three three three three three three three]))))
+  (testing "all fours"
+    (is (= ["                           "
+            "|_||_||_||_||_||_||_||_||_|"
+            "  |  |  |  |  |  |  |  |  |"]
+           (->row-strs [four four four four four four four four four]))))
+  (testing "all fives"
+    (is (= [" _  _  _  _  _  _  _  _  _ "
+            "|_ |_ |_ |_ |_ |_ |_ |_ |_ "
+            " _| _| _| _| _| _| _| _| _|"]
+           (->row-strs [five five five five five five five five five]))))
+  (testing "all sixes"
+    (is (= [" _  _  _  _  _  _  _  _  _ "
+            "|_ |_ |_ |_ |_ |_ |_ |_ |_ "
+            "|_||_||_||_||_||_||_||_||_|"]
+           (->row-strs [six six six six six six six six six]))))
+  (testing "all sevens"
+    (is (= [" _  _  _  _  _  _  _  _  _ "
+            "  |  |  |  |  |  |  |  |  |"
+            "  |  |  |  |  |  |  |  |  |"]
+           (->row-strs [seven seven seven seven seven seven seven seven seven]))))
+  (testing "all eight s"
+    (is (= [" _  _  _  _  _  _  _  _  _ "
+            "|_||_||_||_||_||_||_||_||_|"
+            "|_||_||_||_||_||_||_||_||_|"]
+           (->row-strs [eight eight eight eight eight eight eight eight eight]))))
+  (testing "all nines"
+    (is (= [" _  _  _  _  _  _  _  _  _ "
+            "|_||_||_||_||_||_||_||_||_|"
+            " _| _| _| _| _| _| _| _| _|"]
+           (->row-strs [nine nine nine nine nine nine nine nine nine]))))
+  (testing "sequential numbers"
+    (is (= ["    _  _     _  _  _  _  _ "
+            "  | _| _||_||_ |_   ||_||_|"
+            "  ||_  _|  | _||_|  ||_| _|"]
+           (->row-strs [one two three four five six seven eight nine])))))
