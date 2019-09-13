@@ -125,19 +125,46 @@
         (assoc 0 \space 2 \space)
         (active-pixels [] 0))))
 
+(defn lines->num-seq [lines]
+  (let [accum (fn [lines num-seq]
+                (if (-> lines first seq)
+                  (let [next-num (-> lines
+                                     lines->desc
+                                     ->numeral)
+                        next-lines (map #(drop 3 %) lines)]
+                    (recur next-lines (conj num-seq next-num)))
+                  num-seq))]
+    (accum lines [])))
+
+(defn- num-seq->acct-number [num-seq]
+  (let [accum (fn [desc acct-num]
+                (if (seq desc)
+                  (let [next-num (first desc)
+                        new-acct-num (-> acct-num
+                                         (* 10)
+                                         (+ next-num))]
+                    (recur (rest desc) new-acct-num))
+                  acct-num))]
+    (accum num-seq 0)))
+
+(defn num-seq->checksum [num-seq]
+  (let [accum (fn [desc [checksum digit-seq]]
+                (if (seq desc)
+                  (let [next-num (first desc)
+                        new-checksum (-> (first digit-seq)
+                                         (* next-num)
+                                         (+ checksum)
+                                         (mod 11))]
+                    (recur (rest desc) [new-checksum (rest digit-seq)]))
+                  checksum))]
+    (accum num-seq [0 (iterate dec 9)])))
+
 (defn lines->acct-number
   "the format should have 3 lines of characters"
   [lines]
-  (let [numeral-accum (fn [lines acct-num]
-                        (if (-> lines first seq)
-                          (let [next-num (-> lines
-                                             lines->desc
-                                             ->numeral)
-                                new-acct-num (+ (* 10 acct-num) next-num)
-                                next-lines (map #(drop 3 %) lines)]
-                            (recur next-lines new-acct-num))
-                          acct-num))]
-    (numeral-accum lines 0)))
+  (-> lines
+      lines->num-seq
+      num-seq->acct-number))
 
 (defn parse-lines
   "takes a bunch of lines, these *should be* 27 characters each, and parse them into a seq of numerals"

@@ -175,3 +175,9 @@
                            (java.io.StringReader.)
                            (java.io.BufferedReader.))]
              (parse-file file))))))
+
+(deftest test-checksum
+  (testing "valid checksum"
+    (is (= 0 (num-seq->checksum [4 5 7 5 0 8 0 0 0]))))
+  (testing "invalid checksum"
+    (is (= 2 (num-seq->checksum [6 6 4 3 7 1 4 9 5])))))
