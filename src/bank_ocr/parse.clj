@@ -107,3 +107,20 @@
 (defn ->numeral [desc]
   (let [numeral (desc->numeral desc (keys pred->numeral))]
     (when (seq numeral) (first numeral))))
+
+(defn lines->desc
+  "lines should be a 3-line string description of a number in ocr format"
+  [lines]
+  ;; take 3 chars off each line, and append them all into a string
+  ;; then check for the presence of non-blank (remove 0 and 2 in any case as that would be a mis-read of the scanner
+  (let [active-pixels (fn [characters pixels i]
+                        (if (empty? characters)
+                          pixels
+                          (if (= \space (first characters))
+                            (recur (rest characters) pixels (inc i))
+                            (recur (rest characters) (conj pixels i) (inc i)))))]
+    (-> (map #(take 3 %) lines)
+        flatten
+        vec
+        (assoc 0 \space 2 \space)
+        (active-pixels [] 0))))

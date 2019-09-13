@@ -102,3 +102,45 @@
     (is (= 8 (->numeral (nums 8)))))
   (testing "nine"
     (is (= 9 (->numeral (nums 9))))))
+
+(deftest test-lines->desc
+  (testing "chars for 0"
+    (is (= (nums 0) (-> [(nums 0)]
+                        ->row-strs
+                        lines->desc))))
+  (testing "chars for 1"
+    (is (= (nums 1) (-> [(nums 1)]
+                        ->row-strs
+                        lines->desc))))
+  (testing "chars for 2"
+    (is (= (nums 2) (-> [(nums 2)]
+                        ->row-strs
+                        lines->desc))))
+  (testing "chars for 3"
+    (is (= (nums 3) (-> [(nums 3)]
+                        ->row-strs
+                        lines->desc))))
+  (testing "chars for 4"
+    (is (= (nums 4) (-> [(nums 4)]
+                        ->row-strs
+                        lines->desc))))
+  (testing "chars for 5"
+    (is (= (nums 5) (-> [(nums 5)]
+                        ->row-strs
+                        lines->desc))))
+  (testing "chars for 6"
+    (is (= (nums 6) (-> [(nums 6)]
+                        ->row-strs
+                        lines->desc))))
+  (testing "chars for 7"
+    (is (= (nums 7) (-> [(nums 7)]
+                        ->row-strs
+                        lines->desc))))
+  (testing "chars for 8"
+    (is (= (nums 8) (-> [(nums 8)]
+                        ->row-strs
+                        lines->desc))))
+  (testing "chars for 9"
+    (is (= (nums 9) (-> [(nums 9)]
+                        ->row-strs
+                        lines->desc)))))
