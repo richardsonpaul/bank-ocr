@@ -190,3 +190,9 @@
        line-seq
        (remove clojure.string/blank?)
        parse-lines))
+
+(defn write-file
+  "accepts a seq of acct-numbers, and an output stream to write to (java.io.BufferedWriter)"
+  [acct-nums writer]
+  (binding [*out* writer]
+    (dorun (map println acct-nums))))

@@ -162,25 +162,34 @@
     (is (= acct-numbers
            (parse-lines lines)))))
 
+(defn- lines->reader [lines]
+  (let [interleave-newlines #(interleave % (repeat \newline))]
+    (->> lines
+         interleave-newlines
+         (partition 3)
+         interleave-newlines
+         flatten
+         (apply str)
+         (java.io.StringReader.)
+         (java.io.BufferedReader.))))
+
 (deftest test-file-parser
   (testing "provide a BufferedReader containing data in the proper format and test parsing"
     (is (= acct-numbers
-           (let [interleave-newlines #(interleave % (repeat \newline))
-                 file (->> lines
-                           interleave-newlines
-                           (partition 3)
-                           interleave-newlines
-                           flatten
-                           (apply str)
-                           (java.io.StringReader.)
-                           (java.io.BufferedReader.))]
-             (parse-file file))))))
+           (-> lines lines->reader parse-file)))))
+
+(def invalid-acct-num [6 6 4 3 7 1 4 9 5])
+(def illegible-acct-number (->acct-num-lines one two
+                                          (->> three (cons 6))
+                                          four five six seven
+                                          (drop 2 eight)
+                                          nine))
 
 (deftest test-checksum
   (testing "valid checksum"
     (is (= 0 (num-seq->checksum [4 5 7 5 0 8 0 0 0]))))
   (testing "invalid checksum"
-    (is (= 2 (num-seq->checksum [6 6 4 3 7 1 4 9 5])))))
+    (is (= 2 (num-seq->checksum invalid-acct-num)))))
 
 (deftest illegible-acct-num
   (testing "illegible number"
@@ -193,11 +202,18 @@
 (deftest bad-account-numbers
   (testing "illegible characters"
     (is (= "12?4567?9 ILL"
-           (lines->acct-number (->acct-num-lines one two
-                                                 (->> three (cons 6))
-                                                 four five six seven
-                                                 (drop 2 eight)
-                                                 nine)))))
+           (lines->acct-number illegible-acct-number))))
   (testing "error in checksum"
     (is (= "664371495 ERR"
            (lines->acct-number (->acct-num-lines six six four three seven one four nine five))))))
+
+(deftest file-output
+  (testing "output some account numbers and verify proper write"
+    (is (= "123456789\n234567899\n654890269\n664371495 ERR\n12?4567?9 ILL\n"
+           (-> lines
+               (concat (apply ->acct-num-lines (map #(nums %) invalid-acct-num)))
+               (concat illegible-acct-number)
+               lines->reader
+               parse-file
+               (write-file *out*)
+               with-out-str)))))
