@@ -25,7 +25,7 @@
 (def eight [1 3 4 5 6 7 8])
 (def nine [1 3 4 5 7 8])
 
-(def ^:private nums [zero one two three four five six seven eight nine])
+(def nums [zero one two three four five six seven eight nine])
 (defn- ->name [num]
   (condp = num
     zero :zero
@@ -69,13 +69,41 @@
 (defn- !has-5? [n] (not (has-5? n)))
 (defn- !has-6? [n] (not (has-6? n)))
 
-(def ^:private pred-zero? [has-3? has-6? has-5? !has-4?])
-(def ^:private pred-one? [!has-3? !has-4? !has-1?])
-(def ^:private pred-two? [!has-3? has-4? has-6?])
-(def ^:private pred-three? [!has-3? has-4? !has-6?])
-(def ^:private pred-four? [has-3? !has-6? has-5? !has-1?])
-(def ^:private pred-five? [has-3? !has-6? !has-5?])
-(def ^:private pred-six? [has-3? has-6? !has-5?])
-(def ^:private pred-seven? [!has-3? !has-4? has-1?])
-(def ^:private pred-eight? [has-3? has-6? has-5? has-4?])
-(def ^:private pred-nine? [has-3? !has-6? has-5? has-1?])
+;; list of predicate functions describing a path down the tree. The final entry is the
+;; number description to check against
+(def ^:private pred-0? [has-3? has-6? has-5? !has-4? 0])
+(def ^:private pred-1? [!has-3? !has-4? !has-1? 1])
+(def ^:private pred-2? [!has-3? has-4? has-6? 2])
+(def ^:private pred-3? [!has-3? has-4? !has-6? 3])
+(def ^:private pred-4? [has-3? !has-6? has-5? !has-1? 4])
+(def ^:private pred-5? [has-3? !has-6? !has-5? 5])
+(def ^:private pred-6? [has-3? has-6? !has-5? 6])
+(def ^:private pred-7? [!has-3? !has-4? has-1? 7])
+(def ^:private pred-8? [has-3? has-6? has-5? has-4? 8])
+(def ^:private pred-9? [has-3? !has-6? has-5? has-1? 9])
+
+(def ^:private pred->numeral {pred-0? 0
+                              pred-1? 1
+                              pred-2? 2
+                              pred-3? 3
+                              pred-4? 4
+                              pred-5? 5
+                              pred-6? 6
+                              pred-7? 7
+                              pred-8? 8
+                              pred-9? 9})
+
+(defn- desc->numeral
+  "take a description of active 'pixels' and a list of predicates"
+  [desc preds]
+  (let [groups (group-by first preds)
+        next-group? (fn [[pred next-groups]] (when (pred desc) (map rest next-groups)))
+        next-pred-list (some next-group? groups)]
+    (when (seq next-pred-list)
+      (if (= (count next-pred-list) 1)
+        (first next-pred-list)
+        (desc->numeral desc next-pred-list)))))
+
+(defn ->numeral [desc]
+  (let [numeral (desc->numeral desc (keys pred->numeral))]
+    (when (seq numeral) (first numeral))))

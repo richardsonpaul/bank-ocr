@@ -80,3 +80,25 @@
             "  | _| _||_||_ |_   ||_||_|"
             "  ||_  _|  | _||_|  ||_| _|"]
            (->row-strs [one two three four five six seven eight nine])))))
+
+(deftest test-parse-tree
+  (testing "zero"
+    (is (= 0 (->numeral (nums 0)))))
+  (testing "one"
+    (is (= 1 (->numeral (nums 1)))))
+  (testing "two"
+    (is (= 2 (->numeral (nums 2)))))
+  (testing "three"
+    (is (= 3 (->numeral (nums 3)))))
+  (testing "four"
+    (is (= 4 (->numeral (nums 4)))))
+  (testing "five"
+    (is (= 5 (->numeral (nums 5)))))
+  (testing "six"
+    (is (= 6 (->numeral (nums 6)))))
+  (testing "seven"
+    (is (= 7 (->numeral (nums 7)))))
+  (testing "eight"
+    (is (= 8 (->numeral (nums 8)))))
+  (testing "nine"
+    (is (= 9 (->numeral (nums 9))))))
